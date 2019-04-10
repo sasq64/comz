@@ -12,4 +12,5 @@ if(CCACHE_PROGRAM)
 endif()
 
 add_executable(comz comz.cpp)
+target_link_libraries(comz PRIVATE pthread)
 target_include_directories(comz PRIVATE external/asio/asio/include)

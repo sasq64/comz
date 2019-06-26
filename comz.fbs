@@ -1,0 +1,29 @@
+
+
+enum MsgId : uint8 { Login, Post }
+
+table LoginMessage {
+    name: string;
+}
+
+table PostMessage {
+    topic: string;
+    text: string;
+}
+
+table ReplyMessage {
+    reply_to: int32;
+    text: string;
+}
+
+union MsgData { PostMessage, LoginMessage, ReplyMessage }
+
+table Message
+{
+    id: MsgId;
+    session: uint64;
+    data: MsgData;
+}
+
+root_type Message;
+

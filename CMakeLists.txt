@@ -40,7 +40,8 @@ add_library(comz_fbs INTERFACE)
 target_include_directories(comz_fbs INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 add_dependencies(comz_fbs comz_header)
 
-add_executable(comz src/comz.cpp src/messageboard.cpp)
+add_executable(comz
+    src/comz.cpp src/messageboard.cpp src/loginmanager.cpp src/sha256.cpp)
 target_link_libraries(
   comz PRIVATE comz_fbs coreutils sqlite3 flatbuffers asio pthread)
 

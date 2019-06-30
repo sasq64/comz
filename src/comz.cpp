@@ -1,7 +1,7 @@
 
-#include "messageboard.h"
-
 #include "comz_generated.h"
+#include "messageboard.h"
+#include "loginmanager.h"
 
 #include <asio/connect.hpp>
 #include <asio/ts/buffer.hpp>
@@ -9,8 +9,8 @@
 
 #include <fmt/format.h>
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <unordered_map>
 #include <utility>
@@ -45,6 +45,8 @@ class Server
         tcp::socket socket_;
         std::vector<byte> data_;
 
+        static constexpr int Max_Message_Length = 128;
+
         void handle_message(Message const* msg)
         {
             fmt::print("Hash {:x}\n", msg->session());
@@ -60,8 +62,6 @@ class Server
                 session.post(post->topic()->str(), post->text()->str());
             }
         }
-
-        static constexpr int Max_Message_Length = 128;
 
         void read_data()
         {
@@ -90,8 +90,9 @@ class Server
         void start() { read_data(); }
     };
 
-    std::unordered_map<uint64_t, Session> sessions;
-    sqlite3db::Database db;
+    std::unordered_map<uint64_t, Session> sessions_;
+    sqlite3db::Database db_;
+    LoginManager login_manager_;
     asio::io_context& io_;
     tcp::acceptor acceptor_;
 
@@ -107,19 +108,20 @@ class Server
 
 public:
     Server(asio::io_context& io, int port)
-        : db("comz.db"), io_(io), acceptor_(io, tcp::endpoint(tcp::v4(), port))
+        : db_("comz.db"), login_manager_(db_), io_(io), acceptor_(io, tcp::endpoint(tcp::v4(), port))
     {
         accept();
     }
 
-    Session& get_session(uint64_t hash) { 
-        auto it = sessions.find(hash);
-        if(it == sessions.end()) {
-            return sessions.emplace(hash, Session{}).first->second;
+    Session& get_session(uint64_t hash)
+    {
+        auto it = sessions_.find(hash);
+        if (it == sessions_.end()) {
+            return sessions_.emplace(hash, Session{}).first->second;
         }
         return it->second;
     }
-    sqlite3db::Database& get_database() { return db; }
+    sqlite3db::Database& get_database() { return db_; }
 };
 
 int main()

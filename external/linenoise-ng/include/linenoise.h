@@ -50,6 +50,7 @@ typedef void(linenoiseCompletionCallback)(const char*, linenoiseCompletions*);
 void linenoiseSetCompletionCallback(linenoiseCompletionCallback* fn);
 void linenoiseAddCompletion(linenoiseCompletions* lc, const char* str);
 
+int linenoiseGetKey();
 char* linenoise(const char* prompt);
 void linenoisePreloadBuffer(const char* preloadText);
 int linenoiseHistoryAdd(const char* line);

@@ -11,6 +11,8 @@ if(CCACHE_PROGRAM)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
 endif()
 
+include_directories(/usr/local/include)
+
 add_subdirectory(external/coreutils)
 add_subdirectory(external/sqlite3)
 add_subdirectory(external/linenoise-ng)
@@ -36,9 +38,25 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/comz_generated.h
 add_custom_target(comz_header
                   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/comz_generated.h)
 
-add_library(comz_fbs INTERFACE)
-target_include_directories(comz_fbs INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
-add_dependencies(comz_fbs comz_header)
+              set(PROTO_FILE ${CMAKE_CURRENT_SOURCE_DIR}/comz.proto)
+              set(PROTOC_BIN protoc)
+
+add_custom_command(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/proto/comz.pb.cpp
+                           ${CMAKE_CURRENT_BINARY_DIR}/proto/comz.pb.h
+                     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/proto
+                   COMMAND ${PROTOC_BIN}
+                   -I=${CMAKE_CURRENT_SOURCE_DIR}
+                           --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/proto ${PROTO_FILE}
+                   DEPENDS ${PROTO_FILE}
+                   COMMENT "Running protoc")
+
+add_custom_target(proto_comz
+                  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/proto/comz.pb.h)
+
+
+add_library(comz_fbs STATIC ${CMAKE_CURRENT_BINARY_DIR}/proto/comz.pb.cc)
+target_include_directories(comz_fbs INTERFACE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/proto)  
+add_dependencies(comz_fbs comz_header proto_comz)
 
 add_executable(comz
     src/comz.cpp src/messageboard.cpp src/loginmanager.cpp src/sha256.cpp)

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+message LoginMessage {
+    string name = 1;
+}
+
+message PostMessage {
+    string topic = 1;
+    string text = 2;
+}
+
+message ReplyMessage {
+    string reply_to = 1;
+    string text = 2;
+}
+
+message Message
+{
+    uint64 session = 1;
+    oneof msg {
+        LoginMessage login = 2;
+        PostMessage post = 3;
+        ReplyMessage reply = 4;
+    }
+}
+
